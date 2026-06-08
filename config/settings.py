@@ -84,11 +84,11 @@ WSGI_APPLICATION = "config.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "robovector_db",
-        "USER": "user",
+        "NAME": os.getenv("DB_NAME", "robovector_db"),
+        "USER": os.getenv("DB_USER", "user"),
         "PASSWORD": os.getenv("DB_PASSWORD", "password"),
         "HOST": os.getenv("DB_HOST", "127.0.0.1"),
-        "PORT": os.getenv("DB_PORT", "5433"),
+        "PORT": os.getenv("DB_PORT", "5432"),
     }
 }
 
