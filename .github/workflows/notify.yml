@@ -119,6 +119,10 @@ jobs:
           username: ${{ secrets.MAIL_USERNAME }}
           password: ${{ secrets.MAIL_PASSWORD }}
           subject: "CI Pipeline Status: ${{ job.status }}"
-          body: "The CI pipeline for ${{ github.repository }} has finished with status: ${{ job.status }}. View details at: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          body: |
+            Event Type: ${{ github.event_name }}
+            Status: ${{ job.status }}
+            Repository: ${{ github.repository }}
+            View details at: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
           to: exavector.saas@gmail.com
           from: GitHub Actions
