@@ -1,3 +1,6 @@
+# api/urls.py
+from django.urls import path, include
+
 urlpatterns = [
-    # Add API endpoints here
+    path("core/", include("core.urls")),
 ]

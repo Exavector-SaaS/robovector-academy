@@ -43,11 +43,9 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # Third-party
     "rest_framework",
-    # Local
     "api",
     "core",
     "modules.accounts",
-    "modules.robotics",
 ]
 
 MIDDLEWARE = [
@@ -89,12 +87,12 @@ DATABASES = {
         "NAME": "robovector_db",
         "USER": "user",
         "PASSWORD": os.getenv("DB_PASSWORD", "password"),
-        "HOST": os.getenv("DB_HOST", "localhost"),
-        "PORT": os.getenv("DB_PORT", "5432"),
+        "HOST": os.getenv("DB_HOST", "127.0.0.1"),
+        "PORT": os.getenv("DB_PORT", "5433"),
     }
 }
 
-
+AUTH_USER_MODEL = "accounts.CustomUser"
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
 
