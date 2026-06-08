@@ -79,7 +79,7 @@ jobs:
             COLOR="#FF0000"
           fi
 
-          TEXT="**ExaZone CI Notification**\n\n${EMOJI} **Status**: ${STATUS}\n**Event**: ${EVENT_TYPE}\n- **Repo**: ${REPO}\n- **Branch**: ${BRANCH}\n- **Author**: ${AUTHOR}\n- **Commit**: \`${SHORT_SHA}\`\n- **Message**: ${MSG}"
+          TEXT="**RoboVector CI Notification**\n\n${EMOJI} **Status**: ${STATUS}\n**Event**: ${EVENT_TYPE}\n- **Repo**: ${REPO}\n- **Branch**: ${BRANCH}\n- **Author**: ${AUTHOR}\n- **Commit**: \`${SHORT_SHA}\`\n- **Message**: ${MSG}"
 
           curl -X POST -H "Content-Type: application/json" \
           -d "{\"attachments\": [{\"color\": \"$COLOR\", \"text\": \"$TEXT\"}]}" \

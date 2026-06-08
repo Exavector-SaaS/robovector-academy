@@ -10,4 +10,5 @@ repos:
     rev: 1.7.9
     hooks:
       - id: bandit
-        args: ["-r", "-ll", "-ii"]
+        # -r: recursive, -x: exclude directories, -ll: low severity level, -ii: low confidence level
+        args: ["-r", ".", "-x", "venv,tests", "-ll", "-ii"]
