@@ -12,13 +12,29 @@ jobs:
     steps:
       - name: Send Mattermost notification
         if: always()
-        env:
-          STATUS: ${{ job.status }}
-          REPO: ${{ github.repository }}
-          BRANCH: ${{ github.ref_name }}
-          AUTHOR: ${{ github.actor }}
-          COMMIT_MSG: ${{ github.event.head_commit.message }}
         run: |
+          # 1. إعداد المتغيرات الأساسية
+          STATUS="${{ job.status }}"
+          REPO="${{ github.repository }}"
+          BRANCH="${{ github.ref_name }}"
+          AUTHOR="${{ github.actor }}"
+          COMMIT_SHA="${{ github.sha }}"
+          SHORT_SHA=${COMMIT_SHA:0:7}
+          
+          # 2. تحديد نوع الحدث والرسالة
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            if [ "${{ github.event.action }}" == "closed" ] && [ "${{ github.event.pull_request.merged }}" == "true" ]; then
+              EVENT_TYPE="✅ PR Merged"
+            else
+              EVENT_TYPE="📂 PR ${{ github.event.action }}"
+            fi
+            MSG="${{ github.event.pull_request.title }}"
+          else
+            EVENT_TYPE="🚀 Push"
+            MSG="${{ github.event.head_commit.message }}"
+          fi
+
+          # 3. إعداد الألوان والرموز
           if [ "$STATUS" = "success" ]; then
             EMOJI="✅"
             COLOR="#00FF00"
@@ -27,13 +43,17 @@ jobs:
             COLOR="#FF0000"
           fi
 
+          # 4. بناء نص الرسالة (Message Payload)
           TEXT="**ExaZone CI Notification**\n\n"
-          TEXT="${TEXT}${EMOJI} Status: ${STATUS}\n"
-          TEXT="${TEXT}- Repo: ${REPO}\n"
-          TEXT="${TEXT}- Branch: ${BRANCH}\n"
-          TEXT="${TEXT}- Author: ${AUTHOR}\n"
-          TEXT="${TEXT}- Commit: ${COMMIT_MSG}"
+          TEXT="${TEXT}${EMOJI} **Status**: ${STATUS}\n"
+          TEXT="${TEXT}**Event**: ${EVENT_TYPE}\n"
+          TEXT="${TEXT}- **Repo**: ${REPO}\n"
+          TEXT="${TEXT}- **Branch**: ${BRANCH}\n"
+          TEXT="${TEXT}- **Author**: ${AUTHOR}\n"
+          TEXT="${TEXT}- **Commit**: \`${SHORT_SHA}\`\n"
+          TEXT="${TEXT}- **Message**: ${MSG}"
 
+          # 5. إرسال الطلب إلى Mattermost
           curl -X POST -H "Content-Type: application/json" \
           -d "{\"attachments\": [{\"color\": \"$COLOR\", \"text\": \"$TEXT\"}]}" \
           ${{ secrets.MATTERMOST_WEBHOOK_URL }}
