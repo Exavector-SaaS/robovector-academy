@@ -22,20 +22,16 @@ jobs:
           SHORT_SHA=${COMMIT_SHA:0:7}
           EVENT_NAME="${{ github.event_name }}"
           
-          # 2. Logic to determine message type based on event
-          # Default state
-          EVENT_TYPE="Unknown"
-          MSG=""
-
+          # 2. Logic to determine message type
           if [ "$EVENT_NAME" == "push" ]; then
-            # Filter out Merge commits so they don't trigger a "Direct Push" notification
+            # Filter out Merge commits to avoid duplicate notifications
             if [[ "${{ github.event.head_commit.message }}" == *"Merge pull request"* ]]; then
-              echo "Merge commit detected, skipping push notification."
+              echo "Merge detected, skipping push notification."
               exit 0
             fi
             EVENT_TYPE="🚀 Developer Push"
             MSG="${{ github.event.head_commit.message }}"
-
+            
           elif [ "$EVENT_NAME" == "pull_request" ]; then
             if [ "${{ github.event.action }}" == "opened" ]; then
               EVENT_TYPE="📂 PR Opened"
@@ -44,10 +40,12 @@ jobs:
               EVENT_TYPE="✅ PR Merged"
               MSG="${{ github.event.pull_request.title }}"
             else
-              # Ignore other PR actions (like edited, labeled) to keep stream clean
-              echo "PR action not tracked: ${{ github.event.action }}"
+              echo "Ignoring PR action: ${{ github.event.action }}"
               exit 0
             fi
+          else
+            EVENT_TYPE="ℹ️ Other ($EVENT_NAME)"
+            MSG="Event not explicitly tracked"
           fi
 
           # 3. Setup colors and emojis
