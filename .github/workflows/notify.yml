@@ -10,6 +10,9 @@ on:
 jobs:
   run-ci-pipeline:
     runs-on: ubuntu-latest
+    # Force use of Node.js 24 to resolve deprecation warning
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     # PostgreSQL service container
     services:
