@@ -1,4 +1,4 @@
-name: CI Mattermost Notification
+name: CI/CD Pipeline
 
 on:
   push:
@@ -8,17 +8,37 @@ on:
     types: [opened, closed]
 
 jobs:
-  notify:
+  run-ci-pipeline:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install flake8 black pytest pytest-django bandit
+          
+      - name: Check formatting (Black)
+        run: black --check .
+        
+      - name: Linting (Flake8)
+        run: flake8 .
+        
+      - name: Security Scan (Bandit)
+        run: bandit -r .
+        
+      - name: Run Tests (Pytest)
+        run: pytest
+
       - name: Send Mattermost notification
         if: always()
         run: |
-          # Debug: Log the event details
-          echo "DEBUG: Workflow triggered by event: ${{ github.event_name }}"
-          echo "DEBUG: Branch: ${{ github.ref_name }}"
-          
-          # 1. Setup basic variables
           STATUS="${{ job.status }}"
           REPO="${{ github.repository }}"
           BRANCH="${{ github.ref_name }}"
@@ -27,9 +47,7 @@ jobs:
           SHORT_SHA=${COMMIT_SHA:0:7}
           EVENT_NAME="${{ github.event_name }}"
           
-          # 2. Logic to determine message type
           if [ "$EVENT_NAME" == "push" ]; then
-            # Filter out Merge commits to avoid duplicates
             if [[ "${{ github.event.head_commit.message }}" == *"Merge pull request"* ]]; then
               echo "Merge detected, skipping push notification."
               exit 0
@@ -53,7 +71,6 @@ jobs:
             MSG="Event not explicitly tracked"
           fi
 
-          # 3. Setup colors and emojis
           if [ "$STATUS" = "success" ]; then
             EMOJI="✅"
             COLOR="#00FF00"
@@ -62,10 +79,8 @@ jobs:
             COLOR="#FF0000"
           fi
 
-          # 4. Construct message payload
           TEXT="**ExaZone CI Notification**\n\n${EMOJI} **Status**: ${STATUS}\n**Event**: ${EVENT_TYPE}\n- **Repo**: ${REPO}\n- **Branch**: ${BRANCH}\n- **Author**: ${AUTHOR}\n- **Commit**: \`${SHORT_SHA}\`\n- **Message**: ${MSG}"
 
-          # 5. Send payload to Mattermost
           curl -X POST -H "Content-Type: application/json" \
           -d "{\"attachments\": [{\"color\": \"$COLOR\", \"text\": \"$TEXT\"}]}" \
           ${{ secrets.MATTERMOST_WEBHOOK_URL }}
