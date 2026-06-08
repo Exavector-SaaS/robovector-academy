@@ -9,6 +9,7 @@ nodeenv==1.10.0
 platformdirs==4.10.0
 pre_commit==4.6.0
 python-discovery==1.4.0
+python-dotenv==1.2.2
 PyYAML==6.0.3
 ruff==0.15.16
 sqlparse==0.5.5
