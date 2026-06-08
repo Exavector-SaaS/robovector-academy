@@ -88,9 +88,9 @@ DATABASES = {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": "robovector_db",
         "USER": "user",
-        "PASSWORD": os.getenv("DB_PASSWORD"),
-        "HOST": "localhost",
-        "PORT": "5433",
+        "PASSWORD": os.getenv("DB_PASSWORD", "password"),
+        "HOST": os.getenv("DB_HOST", "localhost"),
+        "PORT": os.getenv("DB_PORT", "5432"),
     }
 }
 
