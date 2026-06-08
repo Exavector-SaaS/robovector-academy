@@ -13,7 +13,7 @@ jobs:
       - name: Send Mattermost notification
         if: always()
         run: |
-          # 1. إعداد المتغيرات الأساسية
+          # 1. Setup basic variables
           STATUS="${{ job.status }}"
           REPO="${{ github.repository }}"
           BRANCH="${{ github.ref_name }}"
@@ -21,8 +21,11 @@ jobs:
           COMMIT_SHA="${{ github.sha }}"
           SHORT_SHA=${COMMIT_SHA:0:7}
           
-          # 2. تحديد نوع الحدث والرسالة
-          if [ "${{ github.event_name }}" == "pull_request" ]; then
+          # 2. Determine event type and message
+          if [ "${{ github.event_name }}" == "push" ]; then
+            EVENT_TYPE="🚀 Direct Push"
+            MSG="${{ github.event.head_commit.message }}"
+          elif [ "${{ github.event_name }}" == "pull_request" ]; then
             if [ "${{ github.event.action }}" == "closed" ] && [ "${{ github.event.pull_request.merged }}" == "true" ]; then
               EVENT_TYPE="✅ PR Merged"
             else
@@ -30,11 +33,11 @@ jobs:
             fi
             MSG="${{ github.event.pull_request.title }}"
           else
-            EVENT_TYPE="🚀 Push"
-            MSG="${{ github.event.head_commit.message }}"
+            EVENT_TYPE="ℹ️ Other (${{ github.event_name }})"
+            MSG="No specific message"
           fi
 
-          # 3. إعداد الألوان والرموز
+          # 3. Setup colors and emojis
           if [ "$STATUS" = "success" ]; then
             EMOJI="✅"
             COLOR="#00FF00"
@@ -43,17 +46,10 @@ jobs:
             COLOR="#FF0000"
           fi
 
-          # 4. بناء نص الرسالة (Message Payload)
-          TEXT="**ExaZone CI Notification**\n\n"
-          TEXT="${TEXT}${EMOJI} **Status**: ${STATUS}\n"
-          TEXT="${TEXT}**Event**: ${EVENT_TYPE}\n"
-          TEXT="${TEXT}- **Repo**: ${REPO}\n"
-          TEXT="${TEXT}- **Branch**: ${BRANCH}\n"
-          TEXT="${TEXT}- **Author**: ${AUTHOR}\n"
-          TEXT="${TEXT}- **Commit**: \`${SHORT_SHA}\`\n"
-          TEXT="${TEXT}- **Message**: ${MSG}"
+          # 4. Construct message payload
+          TEXT="**ExaZone CI Notification**\n\n${EMOJI} **Status**: ${STATUS}\n**Event**: ${EVENT_TYPE}\n- **Repo**: ${REPO}\n- **Branch**: ${BRANCH}\n- **Author**: ${AUTHOR}\n- **Commit**: \`${SHORT_SHA}\`\n- **Message**: ${MSG}"
 
-          # 5. إرسال الطلب إلى Mattermost
+          # 5. Send payload to Mattermost
           curl -X POST -H "Content-Type: application/json" \
           -d "{\"attachments\": [{\"color\": \"$COLOR\", \"text\": \"$TEXT\"}]}" \
           ${{ secrets.MATTERMOST_WEBHOOK_URL }}
