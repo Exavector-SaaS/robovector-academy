@@ -22,13 +22,13 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install flake8 black pytest pytest-django bandit
+          # Replaced flake8 and black with ruff
+          pip install ruff pytest pytest-django bandit
           
-      - name: Check formatting (Black)
-        run: black --check .
-        
-      - name: Linting (Flake8)
-        run: flake8 .
+      - name: Linting and Formatting (Ruff)
+        run: |
+          ruff check .
+          ruff format --check .
         
       - name: Security Scan (Bandit)
         run: bandit -r .
