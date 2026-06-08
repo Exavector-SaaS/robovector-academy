@@ -6,6 +6,7 @@ on:
       - '**'
   pull_request:
     types: [opened, closed]
+  workflow_dispatch:
 
 jobs:
   run-ci-pipeline:
@@ -109,3 +110,15 @@ jobs:
           curl -X POST -H "Content-Type: application/json" \
           -d "{\"attachments\": [{\"color\": \"$COLOR\", \"text\": \"$TEXT\"}]}" \
           ${{ secrets.MATTERMOST_WEBHOOK_URL }}
+      - name: Send email notification
+        if: always()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: "CI Pipeline Status: ${{ job.status }}"
+          body: "The CI pipeline for ${{ github.repository }} has finished with status: ${{ job.status }}. View details at: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          to: exavector.saas@gmail.com
+          from: GitHub Actions
