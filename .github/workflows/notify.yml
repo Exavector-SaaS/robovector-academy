@@ -1,0 +1,39 @@
+name: CI Mattermost Notification
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Mattermost notification
+        if: always()
+        env:
+          STATUS: ${{ job.status }}
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ github.ref_name }}
+          AUTHOR: ${{ github.actor }}
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+        run: |
+          if [ "$STATUS" = "success" ]; then
+            EMOJI="✅"
+            COLOR="#00FF00"
+          else
+            EMOJI="❌"
+            COLOR="#FF0000"
+          fi
+
+          TEXT="**ExaZone CI Notification**\n\n"
+          TEXT="${TEXT}${EMOJI} Status: ${STATUS}\n"
+          TEXT="${TEXT}- Repo: ${REPO}\n"
+          TEXT="${TEXT}- Branch: ${BRANCH}\n"
+          TEXT="${TEXT}- Author: ${AUTHOR}\n"
+          TEXT="${TEXT}- Commit: ${COMMIT_MSG}"
+
+          curl -X POST -H "Content-Type: application/json" \
+          -d "{\"attachments\": [{\"color\": \"$COLOR\", \"text\": \"$TEXT\"}]}" \
+          ${{ secrets.MATTERMOST_WEBHOOK_URL }}
