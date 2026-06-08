@@ -4,7 +4,7 @@ on:
   push:
     branches: [ '*' ]
   pull_request:
-    branches: [ '*' ]
+    types: [opened, closed]
 
 jobs:
   notify:
@@ -20,21 +20,34 @@ jobs:
           AUTHOR="${{ github.actor }}"
           COMMIT_SHA="${{ github.sha }}"
           SHORT_SHA=${COMMIT_SHA:0:7}
+          EVENT_NAME="${{ github.event_name }}"
           
-          # 2. Determine event type and message
-          if [ "${{ github.event_name }}" == "push" ]; then
-            EVENT_TYPE="🚀 Direct Push"
-            MSG="${{ github.event.head_commit.message }}"
-          elif [ "${{ github.event_name }}" == "pull_request" ]; then
-            if [ "${{ github.event.action }}" == "closed" ] && [ "${{ github.event.pull_request.merged }}" == "true" ]; then
-              EVENT_TYPE="✅ PR Merged"
-            else
-              EVENT_TYPE="📂 PR ${{ github.event.action }}"
+          # 2. Logic to determine message type based on event
+          # Default state
+          EVENT_TYPE="Unknown"
+          MSG=""
+
+          if [ "$EVENT_NAME" == "push" ]; then
+            # Filter out Merge commits so they don't trigger a "Direct Push" notification
+            if [[ "${{ github.event.head_commit.message }}" == *"Merge pull request"* ]]; then
+              echo "Merge commit detected, skipping push notification."
+              exit 0
             fi
-            MSG="${{ github.event.pull_request.title }}"
-          else
-            EVENT_TYPE="ℹ️ Other (${{ github.event_name }})"
-            MSG="No specific message"
+            EVENT_TYPE="🚀 Developer Push"
+            MSG="${{ github.event.head_commit.message }}"
+
+          elif [ "$EVENT_NAME" == "pull_request" ]; then
+            if [ "${{ github.event.action }}" == "opened" ]; then
+              EVENT_TYPE="📂 PR Opened"
+              MSG="${{ github.event.pull_request.title }}"
+            elif [ "${{ github.event.action }}" == "closed" ] && [ "${{ github.event.pull_request.merged }}" == "true" ]; then
+              EVENT_TYPE="✅ PR Merged"
+              MSG="${{ github.event.pull_request.title }}"
+            else
+              # Ignore other PR actions (like edited, labeled) to keep stream clean
+              echo "PR action not tracked: ${{ github.event.action }}"
+              exit 0
+            fi
           fi
 
           # 3. Setup colors and emojis
