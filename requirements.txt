@@ -14,3 +14,4 @@ PyYAML==6.0.3
 ruff==0.15.16
 sqlparse==0.5.5
 virtualenv==21.4.2
+psycopg2-binary==2.9.9
