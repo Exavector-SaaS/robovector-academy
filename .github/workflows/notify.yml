@@ -10,30 +10,51 @@ on:
 jobs:
   run-ci-pipeline:
     runs-on: ubuntu-latest
+
+    # PostgreSQL service container
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: robovector_db
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: password
+        ports:
+          - 5432:5432
+        # Health check to ensure the DB is ready before starting tests
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-          
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          # Replaced flake8 and black with ruff
+          # Include necessary testing tools
           pip install ruff pytest pytest-django bandit
-          
+
       - name: Linting and Formatting (Ruff)
         run: |
           ruff check .
           ruff format --check .
-        
+
       - name: Security Scan (Bandit)
         run: bandit -r .
-        
+
       - name: Run Tests (Pytest)
+        env:
+          # Set database URL for Django tests
+          DATABASE_URL: postgresql://user:password@localhost:5432/robovector_db
         run: pytest
 
       - name: Send Mattermost notification
@@ -46,7 +67,8 @@ jobs:
           COMMIT_SHA="${{ github.sha }}"
           SHORT_SHA=${COMMIT_SHA:0:7}
           EVENT_NAME="${{ github.event_name }}"
-          
+          RUN_URL="https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+
           if [ "$EVENT_NAME" == "push" ]; then
             if [[ "${{ github.event.head_commit.message }}" == *"Merge pull request"* ]]; then
               echo "Merge detected, skipping push notification."
@@ -54,7 +76,7 @@ jobs:
             fi
             EVENT_TYPE="🚀 Developer Push"
             MSG="${{ github.event.head_commit.message }}"
-            
+
           elif [ "$EVENT_NAME" == "pull_request" ]; then
             if [ "${{ github.event.action }}" == "opened" ]; then
               EVENT_TYPE="📂 PR Opened"
@@ -79,7 +101,7 @@ jobs:
             COLOR="#FF0000"
           fi
 
-          TEXT="**RoboVector CI Notification**\n\n${EMOJI} **Status**: ${STATUS}\n**Event**: ${EVENT_TYPE}\n- **Repo**: ${REPO}\n- **Branch**: ${BRANCH}\n- **Author**: ${AUTHOR}\n- **Commit**: \`${SHORT_SHA}\`\n- **Message**: ${MSG}"
+          TEXT="**RoboVector CI Notification**\n\n${EMOJI} **Status**: ${STATUS}\n**Event**: ${EVENT_TYPE}\n- **Repo**: ${REPO}\n- **Branch**: ${BRANCH}\n- **Author**: ${AUTHOR}\n- **Commit**: \`${SHORT_SHA}\`\n- **Message**: ${MSG}\n- **Link**: [View Run](${RUN_URL})"
 
           curl -X POST -H "Content-Type: application/json" \
           -d "{\"attachments\": [{\"color\": \"$COLOR\", \"text\": \"$TEXT\"}]}" \
