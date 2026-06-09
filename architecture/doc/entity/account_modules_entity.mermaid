@@ -1,0 +1,33 @@
+classDiagram
+    class User {
+        +UUID id
+        +String email
+        +String auth_hash
+        +Boolean is_active
+    }
+
+    class StudentProfile {
+        +UUID user_id
+        +Date birth_date
+        +String school
+        +Int grade_level
+    }
+
+    class ParentProfile {
+        +UUID user_id
+        +String current_work
+        +Boolean verified_guardian_status
+    }
+
+    class GuardianRelationship {
+        +UUID parent_user_id
+        +UUID student_user_id
+        +String relationship_type
+        +Boolean is_verified
+    }
+
+    User "1" --> "0..1" StudentProfile : profile
+    User "1" --> "0..1" ParentProfile : profile
+    
+    User "1" --> "0..*" GuardianRelationship : as_parent
+    User "1" --> "0..*" GuardianRelationship : as_student

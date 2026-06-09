@@ -1,0 +1,102 @@
+classDiagram
+
+%% =========================
+%% CORE CONTENT (INDEPENDENT)
+%% =========================
+
+class Course {
+    +UUID id
+    +String title
+    +String status
+    +String description
+}
+
+class Module {
+    +UUID id
+    +UUID course_id
+    +String title
+    +Int order
+}
+
+class Lesson {
+    +UUID id
+    +UUID module_id
+    +String title
+    +Int order
+}
+
+class Material {
+    +UUID id
+    +UUID lesson_id
+    +MaterialType type
+    +String title
+    +String resource_url
+}
+
+class MaterialType {
+    <<enumeration>>
+    VIDEO
+    PDF
+    DOCUMENT
+    LINK
+    IMAGE
+}
+
+%% =========================
+%% OPTIONAL LEARNING CONTEXTS
+%% =========================
+
+class SkillTrack {
+    +UUID id
+    +String name
+    +String description
+}
+
+class Competition {
+    +UUID id
+    +String name
+    +String description
+}
+
+class LearningPath {
+    +UUID id
+    +String name
+    +String description
+}
+
+%% =========================
+%% GENERIC COURSE MAPPING
+%% =========================
+
+class CourseContext {
+    +UUID id
+    +UUID course_id
+    +ContextType context_type
+    +UUID context_id
+    +Int order
+}
+
+class ContextType {
+    <<enumeration>>
+    SKILL_TRACK
+    COMPETITION
+    LEARNING_PATH
+}
+
+%% =========================
+%% CONTENT HIERARCHY
+%% =========================
+
+Course "1" --> "0..*" Module
+Module "1" --> "0..*" Lesson
+Lesson "1" --> "0..*" Material
+
+%% =========================
+%% CONTEXT MAPPINGS
+%% =========================
+
+Course "1" --> "0..*" CourseContext
+
+SkillTrack "1" --> "0..*" CourseContext
+Competition "1" --> "0..*" CourseContext
+LearningPath "1" --> "0..*" CourseContext

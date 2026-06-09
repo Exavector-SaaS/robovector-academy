@@ -1,0 +1,48 @@
+classDiagram
+
+    class TimestampedModel {
+        <<abstract>>
+        +DateTime created_at
+        +DateTime updated_at
+    }
+
+    class User {
+        +UUID id
+        +String email
+        +Boolean is_active
+    }
+
+    class SystemSetting {
+        +String key
+        +JSON value
+        +String description
+    }
+
+    class ActivityLog {
+        +UUID id
+        +ActionType action_type
+        +JSON details
+        +DateTime timestamp
+    }
+
+    class ActionType {
+        <<enumeration>>
+        CREATE
+        UPDATE
+        DELETE
+        LOGIN
+        LOGOUT
+        APPROVE
+        REJECT
+    }
+
+    class ContentType {
+        +String app_label
+        +String model
+    }
+
+    TimestampedModel <|-- SystemSetting
+
+    User "1" --> "0..*" ActivityLog : actor
+
+    ActivityLog --> ContentType : target_type

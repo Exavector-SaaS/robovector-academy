@@ -1,0 +1,93 @@
+classDiagram
+
+%% =========================
+%% CORE ENROLLMENT
+%% =========================
+
+class Enrollment {
+    +UUID id
+    +UUID student_id
+    +ContextType context_type
+    +UUID context_id
+    +EnrollmentStatus status
+    +DateTime enrolled_at
+}
+
+class EnrollmentStatus {
+    ACTIVE
+    SUSPENDED
+    COMPLETED
+    CANCELLED
+}
+
+class ContextType {
+    COURSE
+    LEARNING_PATH
+    COMPETITION
+    SKILL_TRACK
+}
+
+%% =========================
+%% PROGRESS
+%% =========================
+
+class Progress {
+    +UUID id
+    +UUID enrollment_id
+    +UUID lesson_id
+    +Float completion_ratio
+    +DateTime updated_at
+}
+
+class ProgressEvent {
+    +UUID id
+    +UUID enrollment_id
+    +UUID lesson_id
+    +String event_type
+    +DateTime created_at
+}
+
+%% =========================
+%% DOMAIN SERVICE
+%% =========================
+
+class EnrollmentPolicy {
+    canEnroll()
+    checkCapacity()
+    checkPrerequisites()
+}
+
+%% =========================
+%% EXTERNAL REFERENCES
+%% =========================
+
+class Lesson {
+    +UUID id
+}
+
+class Student {
+    +UUID id
+}
+
+%% =========================
+%% RELATIONSHIPS
+%% =========================
+
+Enrollment "1" --> "0..*" Progress
+Enrollment "1" --> "0..*" ProgressEvent
+
+Progress --> Lesson
+Progress --> Enrollment
+
+EnrollmentPolicy ..> Enrollment
+
+%% =========================
+%% CONSTRAINT NOTE (AS CLASS)
+%% =========================
+
+class ProgressConstraint {
+    UNIQUE enrollment_id, lesson_id
+    SCALE 0_TO_1
+}
+
+Progress .. ProgressConstraint

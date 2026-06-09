@@ -1,0 +1,114 @@
+classDiagram
+
+%% =========================
+%% BILLABLE CONTEXT
+%% =========================
+
+class BillingContext {
+    +UUID id
+    +ContextType context_type
+    +UUID context_id
+    +String title
+}
+
+class ContextType {
+    COURSE
+    LEARNING_PATH
+    COMPETITION
+    SKILL_TRACK
+}
+
+%% =========================
+%% PRICING MODEL
+%% =========================
+
+class PricingPlan {
+    +UUID id
+    +String name
+    +PricingType type
+    +Float base_price
+}
+
+class PricingType {
+    ONE_TIME
+    SUBSCRIPTION
+    PAY_PER_USE
+    HYBRID
+}
+
+class ContextPricing {
+    +UUID id
+    +UUID billing_context_id
+    +UUID pricing_plan_id
+    +Float override_price
+}
+
+%% =========================
+%% ENROLLMENT BILLING LINK
+%% =========================
+
+class BillingAccount {
+    +UUID id
+    +UUID student_id
+    +Float balance
+}
+
+class Invoice {
+    +UUID id
+    +UUID billing_account_id
+    +Float total_amount
+    +InvoiceStatus status
+}
+
+class InvoiceItem {
+    +UUID id
+    +UUID invoice_id
+    +UUID billing_context_id
+    +Float amount
+}
+
+class Payment {
+    +UUID id
+    +UUID invoice_id
+    +Float amount
+    +PaymentStatus status
+}
+
+class InvoiceStatus {
+    DRAFT
+    ISSUED
+    PAID
+    CANCELLED
+}
+
+class PaymentStatus {
+    PENDING
+    SUCCESS
+    FAILED
+}
+
+%% =========================
+%% RELATIONSHIPS
+%% =========================
+
+BillingContext "1" --> "0..*" ContextPricing
+PricingPlan "1" --> "0..*" ContextPricing
+
+BillingAccount "1" --> "0..*" Invoice
+Invoice "1" --> "0..*" InvoiceItem
+Invoice "1" --> "0..*" Payment
+
+InvoiceItem --> BillingContext
+
+%% =========================
+%% INTEGRATION WITH ENROLLMENT
+%% =========================
+
+class Enrollment {
+    +UUID id
+    +UUID student_id
+    +ContextType context_type
+    +UUID context_id
+}
+
+Enrollment ..> BillingContext : triggers billing

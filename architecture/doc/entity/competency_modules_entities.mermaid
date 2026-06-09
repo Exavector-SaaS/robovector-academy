@@ -1,0 +1,104 @@
+classDiagram
+
+%% =========================
+%% CORE FRAMEWORK
+%% =========================
+
+class Competency {
+    +UUID id
+    +String name
+    +String description
+    +CompetencyLevel level
+}
+
+class Skill {
+    +UUID id
+    +String name
+    +String description
+}
+
+class LearningOutcome {
+    +UUID id
+    +String description
+}
+
+%% =========================
+%% GENERIC MAPPING LAYER (IMPORTANT FIX)
+%% =========================
+
+class CompetencyMapping {
+    +UUID id
+    +UUID competency_id
+    +String source_type
+    +UUID source_id
+    +Float weight
+}
+
+class SkillCompetency {
+    +UUID skill_id
+    +UUID competency_id
+}
+
+class OutcomeMapping {
+    +UUID outcome_id
+    +String source_type
+    +UUID source_id
+}
+
+%% =========================
+%% EVIDENCE LAYER
+%% =========================
+
+class Evidence {
+    +UUID id
+    +UUID student_id
+    +String source_type
+    +UUID source_id
+    +Float score
+    +DateTime created_at
+}
+
+%% =========================
+%% STUDENT STATE
+%% =========================
+
+class StudentCompetency {
+    +UUID student_id
+    +UUID competency_id
+    +Float mastery_level
+    +DateTime last_updated
+}
+
+%% =========================
+%% RELATIONSHIPS
+%% =========================
+
+Competency "1" --> "0..*" CompetencyMapping
+Skill "1" --> "0..*" SkillCompetency
+LearningOutcome "1" --> "0..*" OutcomeMapping
+
+Competency "1" --> "0..*" StudentCompetency
+
+SkillCompetency --> Skill
+SkillCompetency --> Competency
+
+StudentCompetency ..> Evidence : derived_from
+CompetencyMapping ..> Evidence : generates
+OutcomeMapping ..> Evidence
+
+%% =========================
+%% NOTES
+%% =========================
+
+class EvidenceNote {
+    <<Note>>
+    Single source of truth for learning signals
+}
+
+class StudentCompetencyNote {
+    <<Note>>
+    Computed aggregate state
+}
+
+EvidenceNote .. Evidence
+StudentCompetencyNote .. StudentCompetency

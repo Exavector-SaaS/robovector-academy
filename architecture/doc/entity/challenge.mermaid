@@ -1,0 +1,37 @@
+classDiagram
+
+class Challenge {
+    +UUID id
+    +UUID created_by_parent_id
+    +UUID assigned_student_id
+    +UUID course_id
+    +Float reward_amount
+    +String status
+}
+
+class ChallengeSubmission {
+    +UUID id
+    +UUID challenge_id
+    +UUID student_id
+    +DateTime submitted_at
+}
+
+class ChallengeEvaluation {
+    +UUID id
+    +UUID challenge_submission_id
+    +UUID teacher_id
+    +Float score
+    +String feedback
+}
+
+class Reward {
+    +UUID id
+    +UUID challenge_id
+    +UUID student_id
+    +Float amount
+    +String status
+}
+
+Challenge "1" --> "0..*" ChallengeSubmission
+ChallengeSubmission "1" --> "0..1" ChallengeEvaluation
+ChallengeEvaluation --> Reward
