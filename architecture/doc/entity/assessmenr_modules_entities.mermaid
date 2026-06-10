@@ -1,0 +1,128 @@
+classDiagram
+
+%% =========================
+%% ASSESSMENT DEFINITION LAYER
+%% =========================
+
+class Assessment {
+    +UUID id
+    +String title
+    +AssessmentType type
+    +UUID course_id
+    +Boolean is_published
+    +Float passing_score
+    +DateTime created_at
+}
+
+class AssessmentType {
+    <<enumeration>>
+    QUIZ
+    EXAM
+    ASSIGNMENT
+    PROJECT
+    PRACTICAL
+    COMPETITION
+}
+
+class Question {
+    +UUID id
+    +UUID assessment_id
+    +String text
+    +QuestionType type
+    +Float weight
+    +Int order
+}
+
+class QuestionType {
+    <<enumeration>>
+    MCQ
+    TRUE_FALSE
+    SHORT_ANSWER
+    LONG_ANSWER
+}
+
+class Choice {
+    +UUID id
+    +UUID question_id
+    +String text
+    +Boolean is_correct
+}
+
+%% =========================
+%% SUBMISSION LAYER
+%% =========================
+
+class Submission {
+    +UUID id
+    +UUID enrollment_id
+    +UUID assessment_id
+    +SubmissionStatus status
+    +Float score
+    +DateTime submitted_at
+    +DateTime graded_at
+}
+
+class SubmissionStatus {
+    <<enumeration>>
+    DRAFT
+    SUBMITTED
+    GRADED
+    REJECTED
+}
+
+class Answer {
+    +UUID id
+    +UUID submission_id
+    +UUID question_id
+    +String value
+    +Boolean is_correct
+    +Float score
+}
+
+%% =========================
+%% REVIEW & FEEDBACK
+%% =========================
+
+class Feedback {
+    +UUID id
+    +UUID submission_id
+    +UUID mentor_id
+    +String comment
+    +Float adjustment_score
+    +DateTime created_at
+}
+
+%% =========================
+%% EXTERNAL REFERENCES
+%% =========================
+
+class Enrollment {
+    +UUID id
+}
+
+class Course {
+    +UUID id
+}
+
+%% =========================
+%% RELATIONSHIPS
+%% =========================
+
+Assessment "1" --> "0..*" Question
+Question "1" --> "0..*" Choice
+
+Assessment "1" --> "0..*" Submission
+
+Submission "1" --> "0..*" Answer
+Submission "1" --> "0..*" Feedback
+
+Submission --> Enrollment : belongs_to
+Assessment --> Course : evaluates
+
+%% =========================
+%% ARCHITECTURAL NOTES
+%% =========================
+
+note for Submission "Student is resolved through Enrollment"
+
+note for Assessment "Assessment is the aggregate root"

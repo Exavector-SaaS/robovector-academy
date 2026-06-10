@@ -1,0 +1,47 @@
+graph TD
+    %% Base Layer
+    subgraph Foundation
+        core["Core (Utilities, Base Classes, Mixins)"]
+    end
+
+    %% Domain Layer
+    subgraph Domain
+        accounts["Accounts"]
+        curriculum["Curriculum"]
+        learning_progress["Learning Progress"]
+        competency_framework["Competency Framework"]
+    end
+
+    %% Service Layer
+    subgraph Services
+        enrollment["Enrollment"]
+        billing_finance["Billing & Finance"]
+        assessment_evaluation["Assessment & Evaluation"]
+    end
+
+    %% Features Layer
+    subgraph Features
+        gamification["Gamification"]
+        digital_portfolio["Digital Portfolio"]
+        channels_hub["Communication & Notifications"]
+        events_competitions["Events & Competitions"]
+    end
+
+    %% Solid Dependencies (Features -> Services, Services -> Domain via Interfaces, Domain -> Core)
+    core --> Domain
+    Domain -->|Internal Logic| learning_progress
+    
+    %% Features depend on Services (Solid)
+    gamification --> Services
+    digital_portfolio --> Services
+    channels_hub --> Services
+    events_competitions --> Services
+    
+    %% Services depend on Domain via Interface / Repository pattern (dashed to show abstraction)
+    Services -.->|Interface/Repository| Domain
+
+    %% Dashed (Events: Domain triggers Services - Decoupled)
+    accounts -.->|Event| enrollment
+    curriculum -.->|Event| enrollment
+    enrollment -.->|Event| billing_finance
+    enrollment -.->|Event| assessment_evaluation

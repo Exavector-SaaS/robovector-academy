@@ -1,6 +1,5 @@
-# api/urls.py
 from django.urls import path, include
 
 urlpatterns = [
-    path("core/", include("core.urls")),
+    path("core/", include("apps.core.urls")),
 ]

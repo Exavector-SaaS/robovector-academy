@@ -1,0 +1,137 @@
+classDiagram
+
+%% =========================================================
+%% 1. CURRICULUM (CONTENT STRUCTURE)
+%% =========================================================
+
+class Course {
+    +UUID id
+    +String title
+    +String status
+}
+
+class Module {
+    +UUID id
+    +UUID course_id
+}
+
+class Lesson {
+    +UUID id
+    +UUID module_id
+}
+
+class Material {
+    +UUID id
+    +UUID lesson_id
+    +String type
+}
+
+Course "1" --> "0..*" Module
+Module "1" --> "0..*" Lesson
+Lesson "1" --> "0..*" Material
+
+
+%% =========================================================
+%% 2. ENROLLMENT (LEARNING CONTEXT)
+%% =========================================================
+
+class Enrollment {
+    +UUID id
+    +UUID student_id
+    +ContextType context_type
+    +UUID context_id
+    +EnrollmentStatus status
+}
+
+class Progress {
+    +UUID id
+    +UUID enrollment_id
+    +UUID lesson_id
+    +Float completion_ratio
+}
+
+Enrollment "1" --> "0..*" Progress
+
+
+%% =========================================================
+%% 3. ASSESSMENT (MEASUREMENT)
+%% =========================================================
+
+class Assessment {
+    +UUID id
+    +UUID course_id
+    +String type
+}
+
+class Submission {
+    +UUID id
+    +UUID enrollment_id
+    +UUID assessment_id
+    +Float score
+}
+
+class Answer {
+    +UUID id
+    +UUID submission_id
+}
+
+Assessment "1" --> "0..*" Submission
+Submission "1" --> "0..*" Answer
+
+
+%% =========================================================
+%% 4. COMPETENCY FRAMEWORK (INTELLIGENCE LAYER)
+%% =========================================================
+
+class Competency {
+    +UUID id
+    +String name
+}
+
+class Skill {
+    +UUID id
+    +String name
+}
+
+class Evidence {
+    +UUID id
+    +UUID student_id
+    +UUID competency_id
+    +Float score
+    +String source_type
+}
+
+class StudentCompetency {
+    +UUID student_id
+    +UUID competency_id
+    +Float mastery_level
+}
+
+Competency "1" --> "0..*" StudentCompetency
+Skill "1" --> "0..*" Competency
+
+
+%% =========================================================
+%% 5. MAPPING (CURRICULUM → COMPETENCY)
+%% =========================================================
+
+class CompetencyMapping {
+    +UUID competency_id
+    +String source_type
+    +UUID source_id
+    +Float weight
+}
+
+Competency "1" --> "0..*" CompetencyMapping
+
+
+%% =========================================================
+%% 6. CORE FLOW (THE SYSTEM BRAIN)
+%% =========================================================
+
+Submission ..> Evidence : generates
+Progress ..> Evidence : generates
+
+Evidence ..> StudentCompetency : updates
+
+CompetencyMapping ..> Evidence : defines impact

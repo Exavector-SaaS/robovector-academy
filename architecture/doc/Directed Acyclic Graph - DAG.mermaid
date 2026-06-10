@@ -1,0 +1,78 @@
+graph TD
+
+%% ========================
+%% CORE
+%% ========================
+subgraph Core
+    core["Core (Base, Mixins, Utils)"]
+end
+
+%% ========================
+%% DOMAIN (No knowledge of services)
+%% ========================
+subgraph Domain
+    accounts["Accounts"]
+    curriculum["Curriculum"]
+    learning_progress["Learning Progress"]
+    competency_framework["Competency Framework"]
+end
+
+%% ========================
+%% SERVICES
+%% ========================
+subgraph Services
+    enrollment["Enrollment"]
+    billing_finance["Billing & Finance"]
+    assessment["Assessment & Evaluation"]
+end
+
+%% ========================
+%% FEATURES
+%% ========================
+subgraph Features
+    gamification["Gamification"]
+    portfolio["Digital Portfolio"]
+    channels["Channels Hub"]
+    events["Events"]
+end
+
+%% ========================
+%% CORE DEPENDENCY (strict downward)
+%% ========================
+core -->|direct import| accounts
+core -->|direct import| curriculum
+core -->|direct import| learning_progress
+core -->|direct import| competency_framework
+
+%% ========================
+%% DOMAIN → SERVICES (EVENT-BASED ONLY)
+%% ========================
+accounts -.->|event: user_created / profile_updated| enrollment
+curriculum -.->|event: course_published| enrollment
+learning_progress -.->|event: lesson_completed| assessment
+competency_framework -.->|event: skill_updated| assessment
+
+%% ========================
+%% SERVICES INTERNAL FLOW
+%% ========================
+enrollment -->|direct| billing_finance
+assessment -->|event| gamification
+enrollment -->|event| gamification
+
+%% ========================
+%% SERVICES → FEATURES (INTERFACE / EVENT BUS)
+%% ========================
+enrollment -.->|event stream| portfolio
+assessment -.->|event stream| portfolio
+billing_finance -.->|event: payment_success| channels
+assessment -.->|event| channels
+enrollment -.->|event| events
+
+%% ========================
+%% FEATURES READ ONLY LINKS
+%% ========================
+portfolio -.->|read-only query| learning_progress
+portfolio -.->|read-only query| competency_framework
+channels -.->|read-only query| accounts
+gamification -.->|read-only query| learning_progress
+events -.->|read-only query| curriculum
