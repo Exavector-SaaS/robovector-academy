@@ -8,3 +8,15 @@ class Course(BaseTenantModel):
 
     def __str__(self):
         return self.title
+
+
+class Module(BaseTenantModel):
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="modules")
+
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+
+    order = models.PositiveIntegerField(default=1)
+
+    def __str__(self):
+        return self.title
