@@ -5,7 +5,7 @@ class IsOrganizationMember(BasePermission):
     def has_permission(self, request, view):
         org = getattr(request, "organization", None)
 
-        if not org or not request.user.is_authenticated:
+        if not request.user.is_authenticated or not org:
             return False
 
         return request.user.memberships.filter(
@@ -19,7 +19,7 @@ class HasRole(BasePermission):
     def has_permission(self, request, view):
         org = getattr(request, "organization", None)
 
-        if not org or not request.user.is_authenticated:
+        if not request.user.is_authenticated or not org:
             return False
 
         membership = request.user.memberships.filter(

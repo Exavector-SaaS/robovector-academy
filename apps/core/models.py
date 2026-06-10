@@ -38,9 +38,9 @@ class Organization(BaseModel):
 # =========================
 
 
-class BaseTenantModel(BaseModel):
+class BaseTenantModel(models.Model):
     organization = models.ForeignKey(
-        Organization, on_delete=models.CASCADE, related_name="%(class)s_set"
+        "core.Organization", on_delete=models.CASCADE, related_name="%(class)s_set"
     )
 
     objects = TenantManager()

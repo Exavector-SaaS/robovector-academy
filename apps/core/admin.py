@@ -18,3 +18,9 @@ class TenantAdmin(admin.ModelAdmin):
             obj.organization = org
 
         obj.save()
+
+    def has_module_permission(self, request):
+        if request.user.is_superuser:
+            return True
+
+        return hasattr(request, "organization") and request.organization is not None

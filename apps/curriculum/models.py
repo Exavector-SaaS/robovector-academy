@@ -20,3 +20,15 @@ class Module(BaseTenantModel):
 
     def __str__(self):
         return self.title
+
+
+class Lesson(BaseTenantModel):
+    module = models.ForeignKey(Module, on_delete=models.CASCADE, related_name="lessons")
+
+    title = models.CharField(max_length=255)
+    content = models.TextField(blank=True)
+
+    order = models.PositiveIntegerField(default=1)
+
+    def __str__(self):
+        return self.title

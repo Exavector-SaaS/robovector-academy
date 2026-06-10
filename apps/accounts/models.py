@@ -63,6 +63,12 @@ class User(AbstractBaseUser, PermissionsMixin):
         membership = self.active_membership()
         return membership.organization if membership else None
 
+    def get_role(self, organization):
+        membership = self.memberships.filter(
+            organization=organization, is_active=True
+        ).first()
+        return membership.role if membership else None
+
     def __str__(self):
         return self.email
 
@@ -81,9 +87,7 @@ class Organization(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def get_owner(self):
-        membership = self.memberships.filter(
-            role=Membership.Role.OWNER, is_active=True
-        ).first()
+        membership = self.memberships.filter(role="owner", is_active=True).first()
         return membership.user if membership else None
 
     def __str__(self):
@@ -137,7 +141,7 @@ class Membership(models.Model):
 
 class BaseTenantModel(models.Model):
     organization = models.ForeignKey(
-        "Organization", on_delete=models.CASCADE, related_name="%(class)s_set"
+        Organization, on_delete=models.CASCADE, related_name="%(class)s_set"
     )
 
     class Meta:
