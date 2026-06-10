@@ -17,7 +17,9 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path
+from apps.core.views import debug_tenant
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("debug/", debug_tenant),
 ]

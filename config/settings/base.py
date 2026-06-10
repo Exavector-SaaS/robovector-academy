@@ -10,6 +10,7 @@ load_dotenv(BASE_DIR / ".env")
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
@@ -43,6 +44,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "apps.core.middleware.OrganizationMiddleware",
 ]
 ROOT_URLCONF = "config.urls"
 
@@ -65,3 +67,4 @@ TEMPLATES = [
 ]
 
 STATIC_ROOT = BASE_DIR / "staticfiles"
+STATIC_URL = "/static/"

@@ -37,7 +37,7 @@ class UserManager(BaseUserManager):
 
 
 # =========================
-# USER (IDENTITY LAYER)
+# USER
 # =========================
 
 
@@ -55,12 +55,20 @@ class User(AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
 
+    def active_membership(self):
+        return self.memberships.filter(is_active=True).order_by("-created_at").first()
+
+    @property
+    def active_organization(self):
+        membership = self.active_membership()
+        return membership.organization if membership else None
+
     def __str__(self):
         return self.email
 
 
 # =========================
-# ORGANIZATION (TENANT)
+# ORGANIZATION
 # =========================
 
 
@@ -72,12 +80,18 @@ class Organization(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def get_owner(self):
+        membership = self.memberships.filter(
+            role=Membership.Role.OWNER, is_active=True
+        ).first()
+        return membership.user if membership else None
+
     def __str__(self):
         return self.name
 
 
 # =========================
-# MEMBERSHIP (USER ↔ ORGANIZATION)
+# MEMBERSHIP
 # =========================
 
 
@@ -91,18 +105,40 @@ class Membership(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="memberships")
+
     organization = models.ForeignKey(
         Organization, on_delete=models.CASCADE, related_name="memberships"
     )
 
     role = models.CharField(max_length=20, choices=Role.choices)
-
     is_active = models.BooleanField(default=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ("user", "organization")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "organization"], name="unique_user_organization"
+            )
+        ]
+        indexes = [
+            models.Index(fields=["user", "organization"]),
+            models.Index(fields=["organization", "role"]),
+        ]
 
     def __str__(self):
         return f"{self.user.email} -> {self.organization.name} ({self.role})"
+
+
+# =========================
+# BASE TENANT MODEL
+# =========================
+
+
+class BaseTenantModel(models.Model):
+    organization = models.ForeignKey(
+        "Organization", on_delete=models.CASCADE, related_name="%(class)s_set"
+    )
+
+    class Meta:
+        abstract = True
